@@ -1,0 +1,6 @@
+{
+  "name": "7Diary",
+  "description": "7Diary - A minimalist, offline Material 3 weekly journal organizing life into 7-day cycles with Nothing OS aesthetic, customizable color palettes, mood & weather tracking, and privacy lock.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
