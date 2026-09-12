@@ -35,12 +35,14 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.util.LocalAppStrings
 
 @Composable
 fun PinSetupDialog(
     onDismiss: () -> Unit,
     onPinSet: (String) -> Unit
 ) {
+    val strings = LocalAppStrings.current
     var step by remember { mutableStateOf(1) } // 1: Enter, 2: Confirm
     var firstPin by remember { mutableStateOf("") }
     var confirmPin by remember { mutableStateOf("") }
@@ -64,7 +66,7 @@ fun PinSetupDialog(
                     if (confirmPin == firstPin) {
                         onPinSet(confirmPin)
                     } else {
-                        errorMessage = "PINs do not match. Please try again."
+                        errorMessage = strings.pinMismatch
                         confirmPin = ""
                         step = 1
                         firstPin = ""
@@ -97,11 +99,11 @@ fun PinSetupDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (step == 1) "Create Passcode PIN" else "Confirm Passcode PIN",
+                    text = if (step == 1) strings.pinSetupTitle else strings.pinConfirmTitle,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
                 IconButton(onClick = onDismiss) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Close")
+                    Icon(imageVector = Icons.Default.Close, contentDescription = strings.cancel)
                 }
             }
         },
@@ -111,7 +113,7 @@ fun PinSetupDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = if (step == 1) "Enter a 4-digit PIN for your diary" else "Re-enter the 4-digit PIN to confirm",
+                    text = if (step == 1) strings.pinSetupSubtitle else strings.pinConfirmSubtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

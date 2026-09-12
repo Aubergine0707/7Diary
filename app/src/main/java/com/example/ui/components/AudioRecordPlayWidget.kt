@@ -50,6 +50,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import java.util.Locale
 
+import com.example.util.LocalAppStrings
+
 @Composable
 fun AudioRecordPlayWidget(
     audioPath: String?,
@@ -70,6 +72,7 @@ fun AudioRecordPlayWidget(
     onDeleteAudio: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -94,7 +97,7 @@ fun AudioRecordPlayWidget(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Voice Recording",
+                    text = strings.voiceRecording,
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -141,11 +144,11 @@ fun AudioRecordPlayWidget(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Mic,
-                            contentDescription = "Start Voice Note",
+                            contentDescription = strings.recordVoiceNote,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Record Voice Note")
+                        Text(strings.recordVoiceNote)
                     }
                 }
             }
@@ -160,6 +163,7 @@ private fun RecordingActiveView(
     onStop: () -> Unit,
     onCancel: () -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val infiniteTransition = rememberInfiniteTransition(label = "recording_pulse")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 1.0f,
@@ -197,7 +201,7 @@ private fun RecordingActiveView(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Recording: ${formatTime(durationSec)}",
+                    text = String.format(strings.recordingActive, formatTime(durationSec)),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.error
                 )
@@ -223,7 +227,7 @@ private fun RecordingActiveView(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Discard Recording",
+                        contentDescription = strings.discardRecording,
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
@@ -240,11 +244,11 @@ private fun RecordingActiveView(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Check,
-                        contentDescription = "Keep Recording",
+                        contentDescription = strings.saveRecording,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Save Recording")
+                    Text(strings.saveRecording)
                 }
             }
         }
@@ -289,6 +293,7 @@ private fun AudioPlayerView(
     onSeek: (Int) -> Unit,
     onDelete: () -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val totalMs = if (totalDurationMs > 0) totalDurationMs else (durationSec * 1000).coerceAtLeast(1000)
     val progressFraction = (currentPositionMs.toFloat() / totalMs.toFloat()).coerceIn(0f, 1f)
 
@@ -318,7 +323,7 @@ private fun AudioPlayerView(
                 ) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) "Pause" else "Play",
+                        contentDescription = if (isPlaying) strings.pause else strings.play,
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(24.dp)
                     )
@@ -366,7 +371,7 @@ private fun AudioPlayerView(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete Audio",
+                        contentDescription = strings.deleteAudio,
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(20.dp)
                     )

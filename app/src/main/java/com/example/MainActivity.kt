@@ -12,6 +12,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +28,9 @@ import com.example.ui.screens.DiaryEditorScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.theme.MyApplicationTheme
+import com.example.util.LocalAppStrings
+import com.example.util.StringsEn
+import com.example.util.StringsZh
 import com.example.viewmodel.DiaryViewModel
 
 sealed interface AppDestination {
@@ -48,35 +52,42 @@ class MainActivity : FragmentActivity() {
             val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
             val colorPalette by viewModel.colorPalette.collectAsStateWithLifecycle()
             val isLocked by viewModel.isAppLocked.collectAsStateWithLifecycle()
+            val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
+            val appStrings = if (appLanguage == "EN") StringsEn else StringsZh
 
-            MyApplicationTheme(themeMode = themeMode, palette = colorPalette) {
-                var currentDestination by remember { mutableStateOf<AppDestination>(AppDestination.Home) }
+            CompositionLocalProvider(LocalAppStrings provides appStrings) {
+                MyApplicationTheme(themeMode = themeMode, palette = colorPalette) {
+                    var currentDestination by remember { mutableStateOf<AppDestination>(AppDestination.Home) }
 
-                // Auto-trigger biometric prompt if locked and biometric enabled
-                val isBiometricHardwareAvailable = remember {
-                    viewModel.biometricAuthManager.isBiometricHardwareAvailable()
-                }
-                val isBiometricEnabled = viewModel.securityPrefs.isBiometricEnabled
-
-                fun launchBiometricPrompt() {
-                    if (isBiometricHardwareAvailable && isBiometricEnabled) {
-                        viewModel.biometricAuthManager.authenticate(
-                            activity = this@MainActivity,
-                            title = "Unlock Offline Diary",
-                            subtitle = "Use your fingerprint or biometric credential",
-                            negativeButtonText = "Use PIN Passcode",
-                            onSuccess = {
-                                viewModel.unlockApp()
-                            },
-                            onError = { _, errString ->
-                                // Cancelled or switched to PIN
-                            },
-                            onFailed = {
-                                Toast.makeText(this@MainActivity, "Biometric verification failed", Toast.LENGTH_SHORT).show()
-                            }
-                        )
+                    // Auto-trigger biometric prompt if locked and biometric enabled
+                    val isBiometricHardwareAvailable = remember {
+                        viewModel.biometricAuthManager.isBiometricHardwareAvailable()
                     }
-                }
+                    val isBiometricEnabled = viewModel.securityPrefs.isBiometricEnabled
+
+                    fun launchBiometricPrompt() {
+                        if (isBiometricHardwareAvailable && isBiometricEnabled) {
+                            viewModel.biometricAuthManager.authenticate(
+                                activity = this@MainActivity,
+                                title = if (appLanguage == "EN") "Unlock 7Diary" else "解锁 7Diary",
+                                subtitle = if (appLanguage == "EN") "Use fingerprint or biometric credential" else "使用指纹或生物特征解锁",
+                                negativeButtonText = if (appLanguage == "EN") "Use PIN Passcode" else "使用 PIN 码",
+                                onSuccess = {
+                                    viewModel.unlockApp()
+                                },
+                                onError = { _, errString ->
+                                    // Cancelled or switched to PIN
+                                },
+                                onFailed = {
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        if (appLanguage == "EN") "Biometric verification failed" else "生物识别验证失败",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            )
+                        }
+                    }
 
                 LaunchedEffect(isLocked) {
                     if (isLocked && isBiometricHardwareAvailable && isBiometricEnabled) {
@@ -160,6 +171,7 @@ class MainActivity : FragmentActivity() {
                 }
             }
         }
+    }
     }
 
     override fun onStop() {

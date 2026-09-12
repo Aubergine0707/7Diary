@@ -1,7 +1,6 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -22,11 +21,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
@@ -40,12 +41,12 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -57,20 +58,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.R
 import com.example.data.model.DiaryEntry
 import com.example.data.model.MoodType
 import com.example.data.model.WeatherType
 import com.example.ui.components.CalendarMonthView
 import com.example.ui.components.DiaryCard
+import com.example.ui.components.HomeDashboardView
 import com.example.ui.components.SevenDayCycleView
+import com.example.util.LocalAppStrings
+import com.example.util.getLocalizedName
 import com.example.viewmodel.DiaryViewModel
 import com.example.viewmodel.HomeTab
 import java.text.SimpleDateFormat
@@ -86,6 +87,7 @@ fun HomeScreen(
     onNavigateSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     val currentTab by viewModel.currentTab.collectAsStateWithLifecycle()
     val allEntries by viewModel.allEntries.collectAsStateWithLifecycle()
     val filteredEntries by viewModel.filteredEntries.collectAsStateWithLifecycle()
@@ -123,11 +125,17 @@ fun HomeScreen(
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
                             Text(
-                                text = "7Diary",
+                                text = strings.appName,
                                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                             )
                             Text(
-                                text = "7-Day Cycle Journal",
+                                text = when (currentTab) {
+                                    HomeTab.HOME -> strings.navHome
+                                    HomeTab.CYCLE -> strings.navCycle
+                                    HomeTab.TIMELINE -> strings.navTimeline
+                                    HomeTab.CALENDAR -> strings.navCalendar
+                                    HomeTab.ANALYTICS -> strings.navAnalytics
+                                },
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -135,25 +143,35 @@ fun HomeScreen(
                     }
                 },
                 actions = {
-                    // Search toggle
+                    // Search toggle (applicable across entries)
                     IconButton(
-                        onClick = { isSearchActive = !isSearchActive },
+                        onClick = {
+                            isSearchActive = !isSearchActive
+                            if (isSearchActive && (currentTab == HomeTab.HOME || currentTab == HomeTab.ANALYTICS)) {
+                                viewModel.setCurrentTab(HomeTab.TIMELINE)
+                            }
+                        },
                         modifier = Modifier.testTag("btn_toggle_search")
                     ) {
                         Icon(
                             imageVector = if (isSearchActive) Icons.Default.Close else Icons.Default.Search,
-                            contentDescription = "Search"
+                            contentDescription = strings.searchPlaceholder
                         )
                     }
 
                     // Filter toggle
                     IconButton(
-                        onClick = { isFilterActive = !isFilterActive },
+                        onClick = {
+                            isFilterActive = !isFilterActive
+                            if (isFilterActive && (currentTab == HomeTab.HOME || currentTab == HomeTab.ANALYTICS)) {
+                                viewModel.setCurrentTab(HomeTab.TIMELINE)
+                            }
+                        },
                         modifier = Modifier.testTag("btn_toggle_filter")
                     ) {
                         Icon(
                             imageVector = Icons.Default.FilterList,
-                            contentDescription = "Filter",
+                            contentDescription = if (strings.isZh) "筛选" else "Filter",
                             tint = if (weatherFilter != null || moodFilter != null) {
                                 MaterialTheme.colorScheme.primary
                             } else {
@@ -170,27 +188,108 @@ fun HomeScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Lock,
-                                contentDescription = "Lock App",
+                                contentDescription = strings.settingsLockTitle,
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
-                    }
-
-                    // Settings
-                    IconButton(
-                        onClick = onNavigateSettings,
-                        modifier = Modifier.testTag("btn_settings")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings"
-                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )
+        },
+        bottomBar = {
+            // Google M3 Bottom Navigation Bar with ONLY ICON BUTTONS as requested
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                tonalElevation = 3.dp,
+                modifier = Modifier.testTag("bottom_nav_bar")
+            ) {
+                NavigationBarItem(
+                    selected = currentTab == HomeTab.HOME,
+                    onClick = { viewModel.setCurrentTab(HomeTab.HOME) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Home,
+                            contentDescription = strings.navHome,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    },
+                    alwaysShowLabel = false,
+                    modifier = Modifier.testTag("bottom_tab_home")
+                )
+
+                NavigationBarItem(
+                    selected = currentTab == HomeTab.CYCLE,
+                    onClick = { viewModel.setCurrentTab(HomeTab.CYCLE) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.ViewWeek,
+                            contentDescription = strings.navCycle,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    },
+                    alwaysShowLabel = false,
+                    modifier = Modifier.testTag("bottom_tab_cycle")
+                )
+
+                NavigationBarItem(
+                    selected = currentTab == HomeTab.TIMELINE,
+                    onClick = { viewModel.setCurrentTab(HomeTab.TIMELINE) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.FormatListBulleted,
+                            contentDescription = strings.navTimeline,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    },
+                    alwaysShowLabel = false,
+                    modifier = Modifier.testTag("bottom_tab_timeline")
+                )
+
+                NavigationBarItem(
+                    selected = currentTab == HomeTab.CALENDAR,
+                    onClick = { viewModel.setCurrentTab(HomeTab.CALENDAR) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.CalendarMonth,
+                            contentDescription = strings.navCalendar,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    },
+                    alwaysShowLabel = false,
+                    modifier = Modifier.testTag("bottom_tab_calendar")
+                )
+
+                NavigationBarItem(
+                    selected = currentTab == HomeTab.ANALYTICS,
+                    onClick = { viewModel.setCurrentTab(HomeTab.ANALYTICS) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Insights,
+                            contentDescription = strings.navAnalytics,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    },
+                    alwaysShowLabel = false,
+                    modifier = Modifier.testTag("bottom_tab_analytics")
+                )
+
+                NavigationBarItem(
+                    selected = false,
+                    onClick = onNavigateSettings,
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = strings.navSettings,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    },
+                    alwaysShowLabel = false,
+                    modifier = Modifier.testTag("bottom_tab_settings")
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -202,7 +301,7 @@ fun HomeScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add New Diary Entry",
+                    contentDescription = strings.editorNewTitle,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -213,8 +312,8 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Search Input Field
-            AnimatedVisibility(visible = isSearchActive && currentTab != HomeTab.ANALYTICS) {
+            // Search Input Field (Google pill style)
+            AnimatedVisibility(visible = isSearchActive) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -223,19 +322,19 @@ fun HomeScreen(
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { viewModel.setSearchQuery(it) },
-                        placeholder = { Text("Search by title or text...") },
+                        placeholder = { Text(strings.searchPlaceholder) },
                         leadingIcon = {
                             Icon(imageVector = Icons.Default.Search, contentDescription = null)
                         },
                         trailingIcon = {
                             if (searchQuery.isNotEmpty()) {
                                 IconButton(onClick = { viewModel.setSearchQuery("") }) {
-                                    Icon(imageVector = Icons.Default.Close, contentDescription = "Clear search")
+                                    Icon(imageVector = Icons.Default.Close, contentDescription = strings.cancel)
                                 }
                             }
                         },
                         singleLine = true,
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(20.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
                             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest
@@ -248,7 +347,7 @@ fun HomeScreen(
             }
 
             // Weather & Mood Filters Row
-            AnimatedVisibility(visible = isFilterActive && currentTab != HomeTab.ANALYTICS) {
+            AnimatedVisibility(visible = isFilterActive) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -263,14 +362,14 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Mood:",
+                            text = strings.timelineFilterMood,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         ElevatedFilterChip(
                             selected = moodFilter == null,
                             onClick = { viewModel.setMoodFilter(null) },
-                            label = { Text("All") }
+                            label = { Text(strings.all) }
                         )
                         MoodType.entries.forEach { mood ->
                             ElevatedFilterChip(
@@ -278,7 +377,7 @@ fun HomeScreen(
                                 onClick = {
                                     viewModel.setMoodFilter(if (moodFilter == mood) null else mood)
                                 },
-                                label = { Text("${mood.emoji} ${mood.displayName}") },
+                                label = { Text("${mood.emoji} ${mood.getLocalizedName(strings.isZh)}") },
                                 colors = FilterChipDefaults.elevatedFilterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer
                                 )
@@ -297,14 +396,14 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Weather:",
+                            text = strings.timelineFilterWeather,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         ElevatedFilterChip(
                             selected = weatherFilter == null,
                             onClick = { viewModel.setWeatherFilter(null) },
-                            label = { Text("All") }
+                            label = { Text(strings.all) }
                         )
                         WeatherType.entries.forEach { weather ->
                             ElevatedFilterChip(
@@ -312,7 +411,7 @@ fun HomeScreen(
                                 onClick = {
                                     viewModel.setWeatherFilter(if (weatherFilter == weather) null else weather)
                                 },
-                                label = { Text(weather.displayName) },
+                                label = { Text(weather.getLocalizedName(strings.isZh)) },
                                 leadingIcon = {
                                     Icon(
                                         imageVector = weather.icon,
@@ -330,86 +429,19 @@ fun HomeScreen(
                 }
             }
 
-            // 7-Day Cycle vs Timeline vs Calendar vs Analytics View Switcher
-            ScrollableTabRow(
-                selectedTabIndex = currentTab.ordinal,
-                containerColor = MaterialTheme.colorScheme.surface,
-                edgePadding = 12.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-            ) {
-                Tab(
-                    selected = currentTab == HomeTab.CYCLE,
-                    onClick = { viewModel.setCurrentTab(HomeTab.CYCLE) },
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.ViewWeek,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("7-Day Unit")
-                        }
-                    },
-                    modifier = Modifier.testTag("tab_cycle")
-                )
-
-                Tab(
-                    selected = currentTab == HomeTab.TIMELINE,
-                    onClick = { viewModel.setCurrentTab(HomeTab.TIMELINE) },
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Timeline,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Timeline")
-                        }
-                    },
-                    modifier = Modifier.testTag("tab_timeline")
-                )
-
-                Tab(
-                    selected = currentTab == HomeTab.CALENDAR,
-                    onClick = { viewModel.setCurrentTab(HomeTab.CALENDAR) },
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.CalendarMonth,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Calendar")
-                        }
-                    },
-                    modifier = Modifier.testTag("tab_calendar")
-                )
-
-                Tab(
-                    selected = currentTab == HomeTab.ANALYTICS,
-                    onClick = { viewModel.setCurrentTab(HomeTab.ANALYTICS) },
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Insights,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Analytics")
-                        }
-                    },
-                    modifier = Modifier.testTag("tab_analytics")
-                )
-            }
-
-            // Main Content: 7-Day Cycle, Timeline, Calendar, or Analytics
+            // Main Content Area switched by Bottom Navigation Tabs
             when (currentTab) {
+                HomeTab.HOME -> {
+                    HomeDashboardView(
+                        cycle = currentSevenDayCycle,
+                        allEntries = allEntries,
+                        onWriteClick = onNavigateNewEntry,
+                        onEntryClick = onNavigateDetail,
+                        onNavigateCycle = { viewModel.setCurrentTab(HomeTab.CYCLE) },
+                        onNavigateTimeline = { viewModel.setCurrentTab(HomeTab.TIMELINE) }
+                    )
+                }
+
                 HomeTab.CYCLE -> {
                     SevenDayCycleView(
                         cycle = currentSevenDayCycle,
@@ -467,9 +499,11 @@ private fun TimelineViewContent(
     onEntryClick: (DiaryEntry) -> Unit,
     onToggleFavorite: (DiaryEntry) -> Unit
 ) {
+    val strings = LocalAppStrings.current
+
     if (entries.isEmpty()) {
         EmptyDiaryState(
-            message = "No diary entries found.\nTap the + button below to write your first entry!"
+            message = strings.timelineNoEntries
         )
     } else {
         LazyColumn(
@@ -497,7 +531,8 @@ private fun CalendarViewContent(
     onEntryClick: (DiaryEntry) -> Unit,
     onToggleFavorite: (DiaryEntry) -> Unit
 ) {
-    val dateDisplayFormat = remember { SimpleDateFormat("MMMM d, yyyy", Locale.US) }
+    val strings = LocalAppStrings.current
+    val dateDisplayFormat = remember { SimpleDateFormat("yyyy年M月d日 EEEE", Locale.getDefault()) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -514,9 +549,9 @@ private fun CalendarViewContent(
 
         item {
             val label = if (selectedDate != null) {
-                "Entries on ${dateDisplayFormat.format(Date(selectedDate))} (${filteredEntries.size})"
+                "${dateDisplayFormat.format(Date(selectedDate))} (${filteredEntries.size})"
             } else {
-                "All Journal Entries (${allEntries.size})"
+                "${strings.calendarTitle} (${allEntries.size})"
             }
             Text(
                 text = label,
@@ -530,9 +565,9 @@ private fun CalendarViewContent(
             item {
                 EmptyDiaryState(
                     message = if (selectedDate != null) {
-                        "No diary entries recorded on this day.\nTap + to create one!"
+                        strings.calendarNoEntriesOnDate
                     } else {
-                        "No diary entries yet.\nTap + to write your first diary!"
+                        strings.timelineNoEntries
                     }
                 )
             }
@@ -550,6 +585,8 @@ private fun CalendarViewContent(
 
 @Composable
 private fun EmptyDiaryState(message: String) {
+    val strings = LocalAppStrings.current
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -575,7 +612,7 @@ private fun EmptyDiaryState(message: String) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Your 7-Day Journal Awaits",
+            text = strings.appName,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface
         )

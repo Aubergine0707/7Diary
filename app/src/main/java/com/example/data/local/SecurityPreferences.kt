@@ -16,6 +16,7 @@ class SecurityPreferences(context: Context) {
         private const val KEY_BIOMETRIC_ENABLED = "key_biometric_enabled"
         private const val KEY_THEME_MODE = "key_theme_mode" // "SYSTEM", "LIGHT", "DARK"
         private const val KEY_COLOR_PALETTE = "key_color_palette"
+        private const val KEY_APP_LANGUAGE = "key_app_language" // "ZH", "EN"
         private const val PREFIX_CYCLE_REFLECTION = "key_cycle_refl_"
         private const val SALT = "OFFLINE_DIARY_SECRET_SALT_2026"
     }
@@ -41,8 +42,12 @@ class SecurityPreferences(context: Context) {
         set(value) = prefs.edit().putString(KEY_THEME_MODE, value).apply()
 
     var colorPalette: String
-        get() = prefs.getString(KEY_COLOR_PALETTE, "NOTHING") ?: "NOTHING"
+        get() = prefs.getString(KEY_COLOR_PALETTE, "DYNAMIC") ?: "DYNAMIC"
         set(value) = prefs.edit().putString(KEY_COLOR_PALETTE, value).apply()
+
+    var appLanguage: String
+        get() = prefs.getString(KEY_APP_LANGUAGE, "ZH") ?: "ZH"
+        set(value) = prefs.edit().putString(KEY_APP_LANGUAGE, value).apply()
 
     fun isPinSet(): Boolean {
         val hash = prefs.getString(KEY_PIN_HASH, null)

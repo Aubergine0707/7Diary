@@ -77,6 +77,8 @@ import com.example.data.model.DiaryEntry
 import com.example.data.model.MoodType
 import com.example.data.model.WeatherType
 import com.example.ui.components.DiaryCard
+import com.example.util.LocalAppStrings
+import com.example.util.getLocalizedName
 import com.example.viewmodel.AnalyticsTimeRange
 import com.example.viewmodel.DiaryViewModel
 import com.example.viewmodel.GalleryPhotoItem
@@ -100,6 +102,7 @@ fun AnalyticsScreen(
     onNewEntryForDate: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     val allEntries by viewModel.allEntries.collectAsStateWithLifecycle()
     val timeRange by viewModel.analyticsTimeRange.collectAsStateWithLifecycle()
     val referenceDateMillis by viewModel.oneYearAgoReferenceDate.collectAsStateWithLifecycle()
@@ -126,6 +129,11 @@ fun AnalyticsScreen(
             ) {
                 AnalyticsSubTab.entries.forEach { tab ->
                     val isSelected = selectedSubTab == tab
+                    val tabTitle = when (tab) {
+                        AnalyticsSubTab.STATS -> strings.analyticsTabStats
+                        AnalyticsSubTab.GALLERY -> strings.analyticsTabGallery
+                        AnalyticsSubTab.ONE_YEAR_AGO -> strings.analyticsTabOneYearAgo
+                    }
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
@@ -150,7 +158,7 @@ fun AnalyticsScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = tab.title,
+                                text = tabTitle,
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                                 ),
@@ -222,6 +230,7 @@ private fun StatsSection(
     viewModel: DiaryViewModel,
     onNavigateDetail: (DiaryEntry) -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val filteredEntries = remember(allEntries, timeRange) {
         viewModel.filterEntriesByTimeRange(allEntries, timeRange)
     }
@@ -256,12 +265,12 @@ private fun StatsSection(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Time Range",
+                            text = strings.analyticsTimeRangeLabel,
                             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Total: ${filteredEntries.size} ${if (filteredEntries.size == 1) "entry" else "entries"}",
+                            text = String.format(strings.analyticsTotalEntriesCount, filteredEntries.size),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -289,7 +298,7 @@ private fun StatsSection(
                                     }
                             ) {
                                 Text(
-                                    text = range.displayName,
+                                    text = range.getLocalizedName(strings.isZh),
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                                     ),
@@ -333,13 +342,13 @@ private fun StatsSection(
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "No Diary Entries in This Period",
+                            text = strings.analyticsNoEntriesPeriod,
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Switch to 'All Time' or write a new entry during this period.",
+                            text = strings.analyticsNoEntriesPeriodDesc,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
@@ -385,8 +394,8 @@ private fun StatsSection(
                 item {
                     Text(
                         text = when {
-                            selectedMoodFilter != null -> "Entries with ${selectedMoodFilter?.displayName} Mood (${displayedEntries.size})"
-                            selectedWeatherFilter != null -> "Entries on ${selectedWeatherFilter?.displayName} Days (${displayedEntries.size})"
+                            selectedMoodFilter != null -> String.format(strings.analyticsEntriesWithMood, selectedMoodFilter?.getLocalizedName(strings.isZh) ?: "", displayedEntries.size)
+                            selectedWeatherFilter != null -> String.format(strings.analyticsEntriesWithWeather, selectedWeatherFilter?.getLocalizedName(strings.isZh) ?: "", displayedEntries.size)
                             else -> ""
                         },
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
@@ -415,6 +424,7 @@ private fun MoodStatisticsCard(
     selectedMoodFilter: MoodType?,
     onSelectMoodFilter: (MoodType) -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val dominantMood = moodStats.firstOrNull()
 
     Card(
@@ -447,12 +457,12 @@ private fun MoodStatisticsCard(
                 Spacer(modifier = Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Mood Analytics",
+                        text = strings.analyticsMoodTitle,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Distribution and emotional trends",
+                        text = strings.analyticsMoodDesc,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -470,7 +480,7 @@ private fun MoodStatisticsCard(
                             Text(text = dominantMood.mood.emoji, fontSize = 13.sp)
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Primary: ${dominantMood.mood.displayName}",
+                                text = String.format(strings.analyticsPrimaryMood, dominantMood.mood.getLocalizedName(strings.isZh)),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -485,7 +495,7 @@ private fun MoodStatisticsCard(
             MultiSegmentProportionalBar(
                 segments = moodStats.map {
                     ProportionalSegment(
-                        label = it.mood.displayName,
+                        label = it.mood.getLocalizedName(strings.isZh),
                         percentage = it.percentage,
                         color = it.mood.badgeColor
                     )
@@ -516,7 +526,7 @@ private fun MoodStatisticsCard(
                             Text(text = stat.mood.emoji, fontSize = 18.sp)
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
-                                text = stat.mood.displayName,
+                                text = stat.mood.getLocalizedName(strings.isZh),
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                                 color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.width(90.dp)
@@ -549,7 +559,7 @@ private fun MoodStatisticsCard(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "${stat.count} ${if (stat.count == 1) "entry" else "entries"}",
+                                    text = String.format(strings.timelineWordsCount, stat.count).replace("字", "篇").replace("words", "entries"),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -569,6 +579,7 @@ private fun WeatherStatisticsCard(
     selectedWeatherFilter: WeatherType?,
     onSelectWeatherFilter: (WeatherType) -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val dominantWeather = weatherStats.firstOrNull()
 
     Card(
@@ -601,12 +612,12 @@ private fun WeatherStatisticsCard(
                 Spacer(modifier = Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Weather Analytics",
+                        text = strings.analyticsWeatherTitle,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Weather patterns and conditions",
+                        text = strings.analyticsWeatherDesc,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -629,7 +640,7 @@ private fun WeatherStatisticsCard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Primary: ${dominantWeather.weather.displayName}",
+                                text = String.format(strings.analyticsPrimaryWeather, dominantWeather.weather.getLocalizedName(strings.isZh)),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -644,7 +655,7 @@ private fun WeatherStatisticsCard(
             MultiSegmentProportionalBar(
                 segments = weatherStats.map {
                     ProportionalSegment(
-                        label = it.weather.displayName,
+                        label = it.weather.getLocalizedName(strings.isZh),
                         percentage = it.percentage,
                         color = it.weather.badgeColor
                     )
@@ -680,7 +691,7 @@ private fun WeatherStatisticsCard(
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
-                                text = stat.weather.displayName,
+                                text = stat.weather.getLocalizedName(strings.isZh),
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                                 color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.width(90.dp),
@@ -715,7 +726,7 @@ private fun WeatherStatisticsCard(
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "${stat.count} ${if (stat.count == 1) "entry" else "entries"}",
+                                    text = String.format(strings.timelineWordsCount, stat.count).replace("字", "篇").replace("words", "entries"),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -801,12 +812,17 @@ private fun PhotoGallerySection(
     onPhotoClick: (GalleryPhotoItem) -> Unit,
     onNewEntry: () -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val allPhotos = remember(allEntries) {
         viewModel.extractGalleryPhotos(allEntries)
     }
 
     var selectedFilter by remember { mutableIntStateOf(0) }
-    val filters = listOf("All Photos (${allPhotos.size})", "Past 7 Days", "Past 30 Days")
+    val filters = listOf(
+        String.format(strings.analyticsFilterAllPhotos, allPhotos.size),
+        strings.analyticsFilterPast7Days,
+        strings.analyticsFilterPast30Days
+    )
 
     val filteredPhotos = remember(allPhotos, selectedFilter) {
         val now = System.currentTimeMillis()
@@ -835,12 +851,12 @@ private fun PhotoGallerySection(
                 ) {
                     Column {
                         Text(
-                            text = "Photo Gallery",
+                            text = strings.analyticsPhotoGallery,
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Cherished visual memories across all your diary entries",
+                            text = strings.analyticsPhotoSubtitle,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -851,7 +867,7 @@ private fun PhotoGallerySection(
                         color = MaterialTheme.colorScheme.primaryContainer
                     ) {
                         Text(
-                            text = "${allPhotos.size} ${if (allPhotos.size == 1) "Photo" else "Photos"}",
+                            text = String.format(strings.analyticsPhotoCount, allPhotos.size),
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
@@ -908,17 +924,13 @@ private fun PhotoGallerySection(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = if (allPhotos.isEmpty()) "No Photos in Gallery" else "No Photos in This Period",
+                        text = if (allPhotos.isEmpty()) strings.analyticsNoPhotosInGallery else strings.analyticsNoPhotosInPeriod,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = if (allPhotos.isEmpty()) {
-                            "Add photos when writing entries, and your gallery will collect them automatically."
-                        } else {
-                            "Try switching the filter criteria or write a new illustrated entry."
-                        },
+                        text = if (allPhotos.isEmpty()) strings.analyticsNoPhotosDesc else strings.analyticsNoPhotosPeriodDesc,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -927,7 +939,7 @@ private fun PhotoGallerySection(
                     Button(onClick = onNewEntry) {
                         Icon(imageVector = Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Write Photo Entry")
+                        Text(strings.analyticsWritePhotoEntry)
                     }
                 }
             }
@@ -956,8 +968,12 @@ private fun GalleryPhotoThumbnail(
     item: GalleryPhotoItem,
     onClick: () -> Unit
 ) {
-    val dateFormat = remember { SimpleDateFormat("MMM d", Locale.ENGLISH) }
-    val formattedDate = remember(item.entry.dateTimestamp) {
+    val strings = LocalAppStrings.current
+    val dateFormat = remember(strings.isZh) {
+        if (strings.isZh) SimpleDateFormat("M月d日", Locale.CHINA)
+        else SimpleDateFormat("MMM d", Locale.ENGLISH)
+    }
+    val formattedDate = remember(item.entry.dateTimestamp, strings.isZh) {
         dateFormat.format(Date(item.entry.dateTimestamp))
     }
 
@@ -1016,6 +1032,7 @@ private fun OneYearAgoSection(
     onNewEntryForDate: (Long) -> Unit,
     onChangeReferenceDate: (Long) -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val oneYearAgoTimestamp = remember(referenceDateMillis) {
         viewModel.getOneYearAgoTimestamp(referenceDateMillis)
     }
@@ -1023,11 +1040,14 @@ private fun OneYearAgoSection(
         viewModel.getOneYearAgoEntries(allEntries, referenceDateMillis)
     }
 
-    val displayDateFormat = remember { SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH) }
-    val targetDateString = remember(oneYearAgoTimestamp) {
+    val displayDateFormat = remember(strings.isZh) {
+        if (strings.isZh) SimpleDateFormat("yyyy年M月d日", Locale.CHINA)
+        else SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
+    }
+    val targetDateString = remember(oneYearAgoTimestamp, strings.isZh) {
         displayDateFormat.format(Date(oneYearAgoTimestamp))
     }
-    val currentDateString = remember(referenceDateMillis) {
+    val currentDateString = remember(referenceDateMillis, strings.isZh) {
         displayDateFormat.format(Date(referenceDateMillis))
     }
 
@@ -1067,12 +1087,12 @@ private fun OneYearAgoSection(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "On This Day",
+                                text = strings.analyticsOneYearAgoTitle,
                                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Time Capsule: Rediscover memories from exactly 1 year ago",
+                                text = strings.analyticsOneYearAgoDesc,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -1097,19 +1117,19 @@ private fun OneYearAgoSection(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBackIosNew,
-                                contentDescription = "Previous Day",
+                                contentDescription = strings.analyticsPrevDay,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
 
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = "Target: $targetDateString",
+                                text = String.format(strings.analyticsTargetDate, targetDateString),
                                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "(Based on: $currentDateString)",
+                                text = String.format(strings.analyticsBasedOnDate, currentDateString),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -1123,7 +1143,7 @@ private fun OneYearAgoSection(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ArrowForwardIos,
-                                contentDescription = "Next Day",
+                                contentDescription = strings.analyticsNextDay,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -1146,7 +1166,7 @@ private fun OneYearAgoSection(
                         ) {
                             Icon(imageVector = Icons.Default.Today, contentDescription = null, modifier = Modifier.size(14.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Back to Today", style = MaterialTheme.typography.labelSmall)
+                            Text(strings.analyticsBackToToday, style = MaterialTheme.typography.labelSmall)
                         }
                     }
                 }
@@ -1161,7 +1181,7 @@ private fun OneYearAgoSection(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Memories on This Day (${oneYearAgoEntries.size})",
+                        text = String.format(strings.analyticsMemoriesOnDate, oneYearAgoEntries.size),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -1207,7 +1227,7 @@ private fun OneYearAgoSection(
                         Spacer(modifier = Modifier.height(14.dp))
 
                         Text(
-                            text = "No Memories on This Day",
+                            text = strings.analyticsNoMemoriesOnDate,
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -1215,7 +1235,7 @@ private fun OneYearAgoSection(
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
-                            text = "You don't have any diary entries for $targetDateString.\nYou can record a retrospective memory for this date below, or write today's diary so you have memories to look back on a year from now!",
+                            text = String.format(strings.analyticsNoMemoriesDesc, targetDateString),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
@@ -1234,7 +1254,7 @@ private fun OneYearAgoSection(
                             ) {
                                 Icon(imageVector = Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Record Memory for This Date")
+                                Text(strings.analyticsRecordMemoryForDate)
                             }
                         }
                     }
@@ -1251,8 +1271,12 @@ private fun PhotoViewerDialog(
     onDismiss: () -> Unit,
     onOpenEntry: () -> Unit
 ) {
-    val dateFormat = remember { SimpleDateFormat("MMM d, yyyy, h:mm a", Locale.ENGLISH) }
-    val formattedDate = remember(item.entry.dateTimestamp) {
+    val strings = LocalAppStrings.current
+    val dateFormat = remember(strings.isZh) {
+        if (strings.isZh) SimpleDateFormat("yyyy年M月d日 HH:mm", Locale.CHINA)
+        else SimpleDateFormat("MMM d, yyyy, h:mm a", Locale.ENGLISH)
+    }
+    val formattedDate = remember(item.entry.dateTimestamp, strings.isZh) {
         dateFormat.format(Date(item.entry.dateTimestamp))
     }
 
@@ -1275,7 +1299,7 @@ private fun PhotoViewerDialog(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = item.entry.title.ifBlank { "Untitled Entry" },
+                            text = item.entry.title.ifBlank { strings.untitledEntry },
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
@@ -1289,7 +1313,7 @@ private fun PhotoViewerDialog(
                     }
 
                     IconButton(onClick = onDismiss) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "Close")
+                        Icon(imageVector = Icons.Default.Close, contentDescription = strings.close)
                     }
                 }
 
@@ -1331,7 +1355,7 @@ private fun PhotoViewerDialog(
                             Text(text = item.entry.moodType.emoji, fontSize = 14.sp)
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = item.entry.moodType.displayName,
+                                text = item.entry.moodType.getLocalizedName(strings.isZh),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -1354,7 +1378,7 @@ private fun PhotoViewerDialog(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = item.entry.weatherType.displayName,
+                                text = item.entry.weatherType.getLocalizedName(strings.isZh),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -1372,7 +1396,7 @@ private fun PhotoViewerDialog(
                 ) {
                     Icon(imageVector = Icons.Default.OpenInNew, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Open Full Diary Entry")
+                    Text(strings.analyticsOpenFullEntry)
                 }
             }
         }

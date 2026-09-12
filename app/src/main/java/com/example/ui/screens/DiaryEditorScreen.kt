@@ -70,6 +70,7 @@ import com.example.ui.components.ImageAttachmentSection
 import com.example.ui.components.MoodSelector
 import com.example.ui.components.RichTextToolbar
 import com.example.ui.components.WeatherSelector
+import com.example.util.LocalAppStrings
 import com.example.viewmodel.DiaryViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -83,6 +84,7 @@ fun DiaryEditorScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val strings = LocalAppStrings.current
     val editorState by viewModel.editorState.collectAsStateWithLifecycle()
     val recorderState by viewModel.audioRecorder.state.collectAsStateWithLifecycle()
     val playerState by viewModel.audioPlayer.state.collectAsStateWithLifecycle()
@@ -90,7 +92,7 @@ fun DiaryEditorScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var selectedEditorTab by remember { mutableIntStateOf(0) } // 0: Edit, 1: Formatted Preview
 
-    val dateFormat = remember { SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.US) }
+    val dateFormat = remember { SimpleDateFormat("yyyy年M月d日 EEEE", Locale.getDefault()) }
 
     // Modern Photo Picker contract
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -121,7 +123,7 @@ fun DiaryEditorScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (editorState.isEditing) "Edit Entry" else "New Journal Entry",
+                        text = if (editorState.isEditing) strings.editorEditTitle else strings.editorNewTitle,
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                     )
                 },
@@ -132,7 +134,7 @@ fun DiaryEditorScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = strings.cancel
                         )
                     }
                 },
@@ -155,7 +157,7 @@ fun DiaryEditorScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Save")
+                        Text(strings.save)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -242,7 +244,7 @@ fun DiaryEditorScreen(
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Part 1: Daily Weather & Mood",
+                            text = "${strings.part1Title}: ${strings.timelineFilterWeather} & ${strings.timelineFilterMood}",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -291,7 +293,7 @@ fun DiaryEditorScreen(
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Part 2: Content & Media",
+                            text = strings.part2Title,
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -303,8 +305,8 @@ fun DiaryEditorScreen(
                     OutlinedTextField(
                         value = editorState.title,
                         onValueChange = { viewModel.updateEditorTitle(it) },
-                        placeholder = { Text("Title of your day...") },
-                        label = { Text("Entry Title") },
+                        placeholder = { Text(strings.editorTitlePlaceholder) },
+                        label = { Text(strings.editorTitleLabel) },
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
@@ -335,7 +337,7 @@ fun DiaryEditorScreen(
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Write & Format")
+                                    Text(strings.editorTabWrite)
                                 }
                             },
                             modifier = Modifier.testTag("tab_editor_write")
@@ -351,7 +353,7 @@ fun DiaryEditorScreen(
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Rich Preview")
+                                    Text(strings.editorTabPreview)
                                 }
                             },
                             modifier = Modifier.testTag("tab_editor_preview")
@@ -374,9 +376,7 @@ fun DiaryEditorScreen(
                             value = editorState.contentValue,
                             onValueChange = { viewModel.updateEditorContent(it) },
                             placeholder = {
-                                Text(
-                                    "Write your thoughts, memories, and stories here...\nUse the toolbar above for bold, italic, headings, lists, and quotes!"
-                                )
+                                Text(strings.editorContentPlaceholder)
                             },
                             shape = RoundedCornerShape(14.dp),
                             minLines = 8,
@@ -404,7 +404,7 @@ fun DiaryEditorScreen(
                             ) {
                                 if (editorState.contentValue.text.isBlank()) {
                                     Text(
-                                        text = "No content written yet. Switch to the 'Write & Format' tab to begin writing.",
+                                        text = strings.editorEmptyPreview,
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -481,12 +481,12 @@ fun DiaryEditorScreen(
                         showDatePicker = false
                     }
                 ) {
-                    Text("OK")
+                    Text(strings.ok)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel")
+                    Text(strings.cancel)
                 }
             }
         ) {

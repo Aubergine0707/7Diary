@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.DiaryEntry
+import com.example.util.LocalAppStrings
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -52,14 +53,21 @@ fun CalendarMonthView(
     onDateSelected: (Long?) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     var calendarMonth by remember {
         mutableStateOf(Calendar.getInstance().apply {
             set(Calendar.DAY_OF_MONTH, 1)
         })
     }
 
-    val monthYearFormat = remember { SimpleDateFormat("MMMM yyyy", Locale.US) }
-    val dayHeaders = listOf("S", "M", "T", "W", "T", "F", "S")
+    val monthYearFormat = remember(strings.isZh) {
+        if (strings.isZh) SimpleDateFormat("yyyy年M月", Locale.CHINESE)
+        else SimpleDateFormat("MMMM yyyy", Locale.ENGLISH)
+    }
+    val dayHeaders = remember(strings.isZh) {
+        if (strings.isZh) listOf("日", "一", "二", "三", "四", "五", "六")
+        else listOf("S", "M", "T", "W", "T", "F", "S")
+    }
 
     // Map of day of month -> list of entries
     val entriesInCurrentMonth = remember(entries, calendarMonth) {
@@ -123,7 +131,7 @@ fun CalendarMonthView(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Previous Month"
+                        contentDescription = strings.calendarPrevMonth
                     )
                 }
 
@@ -149,7 +157,7 @@ fun CalendarMonthView(
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Today")
+                        Text(strings.today)
                     }
 
                     IconButton(
@@ -162,7 +170,7 @@ fun CalendarMonthView(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "Next Month"
+                            contentDescription = strings.calendarNextMonth
                         )
                     }
                 }
@@ -170,7 +178,7 @@ fun CalendarMonthView(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Day name labels (S, M, T, W, T, F, S)
+            // Day name labels
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
@@ -283,7 +291,7 @@ fun CalendarMonthView(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = { onDateSelected(null) }) {
-                        Text("Show All Entries")
+                        Text(strings.showAllEntries)
                     }
                 }
             }

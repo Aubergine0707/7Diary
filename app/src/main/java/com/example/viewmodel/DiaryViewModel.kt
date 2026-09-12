@@ -31,6 +31,7 @@ import java.io.FileOutputStream
 import java.util.Calendar
 
 enum class HomeTab {
+    HOME,
     CYCLE,
     TIMELINE,
     CALENDAR,
@@ -113,8 +114,17 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     )
     val colorPalette: StateFlow<MaterialColorPalette> = _colorPalette.asStateFlow()
 
+    // App Language State ("ZH", "EN")
+    private val _appLanguage = MutableStateFlow(securityPrefs.appLanguage)
+    val appLanguage: StateFlow<String> = _appLanguage.asStateFlow()
+
+    fun setLanguage(lang: String) {
+        securityPrefs.appLanguage = lang
+        _appLanguage.value = lang
+    }
+
     // Home Tab
-    private val _currentTab = MutableStateFlow(HomeTab.CYCLE)
+    private val _currentTab = MutableStateFlow(HomeTab.HOME)
     val currentTab: StateFlow<HomeTab> = _currentTab.asStateFlow()
 
     // Filter states

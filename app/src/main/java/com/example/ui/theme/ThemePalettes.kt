@@ -60,51 +60,8 @@ private val NothingDark = darkColorScheme(
     outlineVariant = Color(0xFF444444)
 )
 
-// ================= VIOLET / AMETHYST =================
-private val VioletLight = lightColorScheme(
-    primary = Color(0xFF6750A4),
-    onPrimary = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFFEADDFF),
-    onPrimaryContainer = Color(0xFF21005D),
-    secondary = Color(0xFF625B71),
-    onSecondary = Color(0xFFFFFFFF),
-    secondaryContainer = Color(0xFFE8DEF8),
-    onSecondaryContainer = Color(0xFF1D192B),
-    tertiary = Color(0xFF7D5260),
-    onTertiary = Color(0xFFFFFFFF),
-    tertiaryContainer = Color(0xFFFFD8E4),
-    onTertiaryContainer = Color(0xFF31111D),
-    background = Color(0xFFFEF7FF),
-    onBackground = Color(0xFF1D1B20),
-    surface = Color(0xFFFEF7FF),
-    onSurface = Color(0xFF1D1B20),
-    surfaceVariant = Color(0xFFE7E0EC),
-    onSurfaceVariant = Color(0xFF49454F)
-)
-
-private val VioletDark = darkColorScheme(
-    primary = Color(0xFFD0BCFF),
-    onPrimary = Color(0xFF381E72),
-    primaryContainer = Color(0xFF4F378B),
-    onPrimaryContainer = Color(0xFFEADDFF),
-    secondary = Color(0xFFCCC2DC),
-    onSecondary = Color(0xFF332D41),
-    secondaryContainer = Color(0xFF4A4458),
-    onSecondaryContainer = Color(0xFFE8DEF8),
-    tertiary = Color(0xFFEFB8C8),
-    onTertiary = Color(0xFF492532),
-    tertiaryContainer = Color(0xFF633B48),
-    onTertiaryContainer = Color(0xFFFFD8E4),
-    background = Color(0xFF141218),
-    onBackground = Color(0xFFE6E0E9),
-    surface = Color(0xFF141218),
-    onSurface = Color(0xFFE6E0E9),
-    surfaceVariant = Color(0xFF49454F),
-    onSurfaceVariant = Color(0xFFCAC4D0)
-)
-
-// ================= OCEAN / SAPPHIRE =================
-private val OceanLight = lightColorScheme(
+// ================= MATERIAL FALLBACK (WHEN DYNAMIC IS OFF/UNSUPPORTED) =================
+private val MaterialDefaultLight = lightColorScheme(
     primary = Color(0xFF0061A4),
     onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFFD1E4FF),
@@ -113,19 +70,26 @@ private val OceanLight = lightColorScheme(
     onSecondary = Color(0xFFFFFFFF),
     secondaryContainer = Color(0xFFD7E3F7),
     onSecondaryContainer = Color(0xFF101C2B),
-    tertiary = Color(0xFF00677D),
+    tertiary = Color(0xFF6750A4),
     onTertiary = Color(0xFFFFFFFF),
-    tertiaryContainer = Color(0xFFB3EBFF),
-    onTertiaryContainer = Color(0xFF001F27),
-    background = Color(0xFFF8F9FF),
-    onBackground = Color(0xFF191C20),
-    surface = Color(0xFFF8F9FF),
-    onSurface = Color(0xFF191C20),
+    tertiaryContainer = Color(0xFFEADDFF),
+    onTertiaryContainer = Color(0xFF21005D),
+    background = Color(0xFFFDFBFF),
+    onBackground = Color(0xFF1A1C1E),
+    surface = Color(0xFFFDFBFF),
+    onSurface = Color(0xFF1A1C1E),
     surfaceVariant = Color(0xFFDFE2EB),
-    onSurfaceVariant = Color(0xFF42474E)
+    onSurfaceVariant = Color(0xFF42474E),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF7F9FD),
+    surfaceContainer = Color(0xFFF1F4F9),
+    surfaceContainerHigh = Color(0xFFEBEEF3),
+    surfaceContainerHighest = Color(0xFFE5E8ED),
+    outline = Color(0xFF73777F),
+    outlineVariant = Color(0xFFC3C7D0)
 )
 
-private val OceanDark = darkColorScheme(
+private val MaterialDefaultDark = darkColorScheme(
     primary = Color(0xFF9ECAFF),
     onPrimary = Color(0xFF003258),
     primaryContainer = Color(0xFF00497D),
@@ -134,102 +98,23 @@ private val OceanDark = darkColorScheme(
     onSecondary = Color(0xFF253140),
     secondaryContainer = Color(0xFF3B4858),
     onSecondaryContainer = Color(0xFFD7E3F7),
-    tertiary = Color(0xFF5DD5FC),
-    onTertiary = Color(0xFF003542),
-    tertiaryContainer = Color(0xFF004E5F),
-    onTertiaryContainer = Color(0xFFB3EBFF),
+    tertiary = Color(0xFFD0BCFF),
+    onTertiary = Color(0xFF381E72),
+    tertiaryContainer = Color(0xFF4F378B),
+    onTertiaryContainer = Color(0xFFEADDFF),
     background = Color(0xFF111418),
     onBackground = Color(0xFFE2E2E6),
     surface = Color(0xFF111418),
     onSurface = Color(0xFFE2E2E6),
     surfaceVariant = Color(0xFF42474E),
-    onSurfaceVariant = Color(0xFFC3C7D0)
-)
-
-// ================= FOREST / SAGE =================
-private val ForestLight = lightColorScheme(
-    primary = Color(0xFF246B39),
-    onPrimary = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFFA7F3B3),
-    onPrimaryContainer = Color(0xFF00210A),
-    secondary = Color(0xFF516351),
-    onSecondary = Color(0xFFFFFFFF),
-    secondaryContainer = Color(0xFFD4E8D2),
-    onSecondaryContainer = Color(0xFF0F1F11),
-    tertiary = Color(0xFF39656C),
-    onTertiary = Color(0xFFFFFFFF),
-    tertiaryContainer = Color(0xFFBDEAF3),
-    onTertiaryContainer = Color(0xFF001F24),
-    background = Color(0xFFF7FAF2),
-    onBackground = Color(0xFF191D19),
-    surface = Color(0xFFF7FAF2),
-    onSurface = Color(0xFF191D19),
-    surfaceVariant = Color(0xFFDEE5D9),
-    onSurfaceVariant = Color(0xFF424941)
-)
-
-private val ForestDark = darkColorScheme(
-    primary = Color(0xFF8CD799),
-    onPrimary = Color(0xFF003916),
-    primaryContainer = Color(0xFF055224),
-    onPrimaryContainer = Color(0xFFA7F3B3),
-    secondary = Color(0xFFB8CCB7),
-    onSecondary = Color(0xFF233425),
-    secondaryContainer = Color(0xFF394B3A),
-    onSecondaryContainer = Color(0xFFD4E8D2),
-    tertiary = Color(0xFFA1CED6),
-    onTertiary = Color(0xFF00363D),
-    tertiaryContainer = Color(0xFF1F4D54),
-    onTertiaryContainer = Color(0xFFBDEAF3),
-    background = Color(0xFF101410),
-    onBackground = Color(0xFFE1E4DE),
-    surface = Color(0xFF101410),
-    onSurface = Color(0xFFE1E4DE),
-    surfaceVariant = Color(0xFF424941),
-    onSurfaceVariant = Color(0xFFC2C9BD)
-)
-
-// ================= TERRACOTTA / AMBER =================
-private val TerracottaLight = lightColorScheme(
-    primary = Color(0xFF904A27),
-    onPrimary = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFFFFDBCF),
-    onPrimaryContainer = Color(0xFF381000),
-    secondary = Color(0xFF77574B),
-    onSecondary = Color(0xFFFFFFFF),
-    secondaryContainer = Color(0xFFFFDBCF),
-    onSecondaryContainer = Color(0xFF2C160D),
-    tertiary = Color(0xFF6B5E2F),
-    onTertiary = Color(0xFFFFFFFF),
-    tertiaryContainer = Color(0xFFF5E2A7),
-    onTertiaryContainer = Color(0xFF231B00),
-    background = Color(0xFFFFF8F6),
-    onBackground = Color(0xFF231915),
-    surface = Color(0xFFFFF8F6),
-    onSurface = Color(0xFF231915),
-    surfaceVariant = Color(0xFFF5DED6),
-    onSurfaceVariant = Color(0xFF53433E)
-)
-
-private val TerracottaDark = darkColorScheme(
-    primary = Color(0xFFFFB598),
-    onPrimary = Color(0xFF552103),
-    primaryContainer = Color(0xFF733514),
-    onPrimaryContainer = Color(0xFFFFDBCF),
-    secondary = Color(0xFFE7BDB0),
-    onSecondary = Color(0xFF442A20),
-    secondaryContainer = Color(0xFF5D4035),
-    onSecondaryContainer = Color(0xFFFFDBCF),
-    tertiary = Color(0xFFD8C68D),
-    onTertiary = Color(0xFF3A3005),
-    tertiaryContainer = Color(0xFF52461A),
-    onTertiaryContainer = Color(0xFFF5E2A7),
-    background = Color(0xFF1A120E),
-    onBackground = Color(0xFFF1DFDA),
-    surface = Color(0xFF1A120E),
-    onSurface = Color(0xFFF1DFDA),
-    surfaceVariant = Color(0xFF53433E),
-    onSurfaceVariant = Color(0xFFD8C2BB)
+    onSurfaceVariant = Color(0xFFC3C7D0),
+    surfaceContainerLowest = Color(0xFF0C0F12),
+    surfaceContainerLow = Color(0xFF191C20),
+    surfaceContainer = Color(0xFF1D2024),
+    surfaceContainerHigh = Color(0xFF282A2E),
+    surfaceContainerHighest = Color(0xFF333539),
+    outline = Color(0xFF8D9199),
+    outlineVariant = Color(0xFF42474E)
 )
 
 enum class MaterialColorPalette(
@@ -239,57 +124,30 @@ enum class MaterialColorPalette(
     val previewColor: Color,
     val isDynamic: Boolean = false
 ) {
-    NOTHING(
-        id = "NOTHING",
-        title = "Nothing Monochrome",
-        subtitle = "Industrial stark B&W with red accent",
-        previewColor = Color(0xFF1E1E1E)
-    ),
     DYNAMIC(
         id = "DYNAMIC",
         title = "Dynamic Material You",
-        subtitle = "Harmonizes with device wallpaper",
-        previewColor = Color(0xFF6750A4),
+        subtitle = "Harmonizes with device wallpaper & M3 dynamic tokens",
+        previewColor = Color(0xFF0061A4),
         isDynamic = true
     ),
-    VIOLET(
-        id = "VIOLET",
-        title = "Amethyst Violet",
-        subtitle = "Classic expressive Material 3",
-        previewColor = Color(0xFF6750A4)
-    ),
-    OCEAN(
-        id = "OCEAN",
-        title = "Sapphire Ocean",
-        subtitle = "Serene deep blue & cyan",
-        previewColor = Color(0xFF0061A4)
-    ),
-    FOREST(
-        id = "FOREST",
-        title = "Sage Forest",
-        subtitle = "Calm botanical emerald & mint",
-        previewColor = Color(0xFF246B39)
-    ),
-    TERRACOTTA(
-        id = "TERRACOTTA",
-        title = "Terracotta Amber",
-        subtitle = "Warm earthen clay & sunset glow",
-        previewColor = Color(0xFF904A27)
+    NOTHING(
+        id = "NOTHING",
+        title = "Nothing",
+        subtitle = "Industrial stark monochrome dot aesthetic",
+        previewColor = Color(0xFF1E1E1E)
     );
 
     fun getColorScheme(isDark: Boolean): ColorScheme {
         return when (this) {
             NOTHING -> if (isDark) NothingDark else NothingLight
-            VIOLET, DYNAMIC -> if (isDark) VioletDark else VioletLight
-            OCEAN -> if (isDark) OceanDark else OceanLight
-            FOREST -> if (isDark) ForestDark else ForestLight
-            TERRACOTTA -> if (isDark) TerracottaDark else TerracottaLight
+            DYNAMIC -> if (isDark) MaterialDefaultDark else MaterialDefaultLight
         }
     }
 
     companion object {
         fun fromId(id: String): MaterialColorPalette {
-            return entries.firstOrNull { it.id.equals(id, ignoreCase = true) } ?: NOTHING
+            return entries.firstOrNull { it.id.equals(id, ignoreCase = true) } ?: DYNAMIC
         }
     }
 }

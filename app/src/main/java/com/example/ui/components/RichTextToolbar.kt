@@ -28,12 +28,15 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
+import com.example.util.LocalAppStrings
+
 @Composable
 fun RichTextToolbar(
     textFieldValue: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surfaceContainer,
@@ -50,7 +53,7 @@ fun RichTextToolbar(
             // Heading
             ToolbarButton(
                 icon = Icons.Default.FormatSize,
-                contentDescription = "Heading",
+                contentDescription = strings.heading,
                 testTag = "toolbar_heading",
                 onClick = {
                     insertAtLineStart(textFieldValue, onValueChange, "# ")
@@ -60,7 +63,7 @@ fun RichTextToolbar(
             // Bold
             ToolbarButton(
                 icon = Icons.Default.FormatBold,
-                contentDescription = "Bold",
+                contentDescription = strings.bold,
                 testTag = "toolbar_bold",
                 onClick = {
                     wrapSelection(textFieldValue, onValueChange, "**", "**")
@@ -70,7 +73,7 @@ fun RichTextToolbar(
             // Italic
             ToolbarButton(
                 icon = Icons.Default.FormatItalic,
-                contentDescription = "Italic",
+                contentDescription = strings.italic,
                 testTag = "toolbar_italic",
                 onClick = {
                     wrapSelection(textFieldValue, onValueChange, "*", "*")
@@ -80,7 +83,7 @@ fun RichTextToolbar(
             // Strikethrough
             ToolbarButton(
                 icon = Icons.Default.FormatStrikethrough,
-                contentDescription = "Strikethrough",
+                contentDescription = strings.strikethrough,
                 testTag = "toolbar_strikethrough",
                 onClick = {
                     wrapSelection(textFieldValue, onValueChange, "~~", "~~")
@@ -90,7 +93,7 @@ fun RichTextToolbar(
             // Bullet List
             ToolbarButton(
                 icon = Icons.AutoMirrored.Filled.FormatListBulleted,
-                contentDescription = "Bulleted List",
+                contentDescription = strings.bulletList,
                 testTag = "toolbar_bullet_list",
                 onClick = {
                     insertAtLineStart(textFieldValue, onValueChange, "• ")
@@ -100,7 +103,7 @@ fun RichTextToolbar(
             // Numbered List
             ToolbarButton(
                 icon = Icons.Default.Numbers,
-                contentDescription = "Numbered List",
+                contentDescription = strings.numberedList,
                 testTag = "toolbar_numbered_list",
                 onClick = {
                     insertAtLineStart(textFieldValue, onValueChange, "1. ")
@@ -110,7 +113,7 @@ fun RichTextToolbar(
             // Quote
             ToolbarButton(
                 icon = Icons.Default.FormatQuote,
-                contentDescription = "Quote",
+                contentDescription = strings.quote,
                 testTag = "toolbar_quote",
                 onClick = {
                     insertAtLineStart(textFieldValue, onValueChange, "> ")

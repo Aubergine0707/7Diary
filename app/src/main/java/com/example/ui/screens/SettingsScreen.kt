@@ -1,7 +1,7 @@
 package com.example.ui.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,10 +26,12 @@ import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Password
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -55,17 +57,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.R
 import com.example.ui.components.PinSetupDialog
 import com.example.ui.theme.MaterialColorPalette
+import com.example.util.AppLanguage
+import com.example.util.LocalAppStrings
 import com.example.viewmodel.DiaryViewModel
 import com.example.viewmodel.HomeTab
 
@@ -77,11 +78,13 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val strings = LocalAppStrings.current
     var showPinSetupDialog by remember { mutableStateOf(false) }
 
     val allEntries by viewModel.allEntries.collectAsStateWithLifecycle()
     val currentThemeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val currentColorPalette by viewModel.colorPalette.collectAsStateWithLifecycle()
+    val currentLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
 
     var isLockEnabled by remember { mutableStateOf(viewModel.securityPrefs.isLockEnabled) }
     var isBiometricEnabled by remember { mutableStateOf(viewModel.securityPrefs.isBiometricEnabled) }
@@ -99,13 +102,13 @@ fun SettingsScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("Settings & Security", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) },
+                title = { Text(strings.settingsTitle, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) },
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateBack,
                         modifier = Modifier.testTag("settings_back_btn")
                     ) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.cancel)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -121,24 +124,25 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(18.dp)
         ) {
-            // 7Diary Brand Card (Nothing OS & Minimalist Material 3)
+            // 7Diary Brand Card (Nothing & Material You Minimalist Style)
             Card(
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(18.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
                             .size(52.dp)
-                            .clip(RoundedCornerShape(14.dp))
+                            .clip(RoundedCornerShape(16.dp))
                             .background(MaterialTheme.colorScheme.primaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
@@ -155,7 +159,7 @@ fun SettingsScreen(
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "7Diary",
+                                text = strings.appName,
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -174,7 +178,7 @@ fun SettingsScreen(
                         }
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "7-Day Unit Offline Journal • Nothing OS Minimalist Style",
+                            text = "${strings.appSubtitle} • ${strings.authorLabel}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -182,19 +186,116 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // ==================== SECURITY & PRIVACY ====================
+            // ==================== LANGUAGE / 语言切换 ====================
             Text(
-                text = "Privacy & Security",
+                text = strings.settingsSectionLanguage,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             Card(
-                shape = RoundedCornerShape(18.dp),
+                shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("card_language_switch")
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Language,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = strings.settingsLanguageTitle,
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = if (strings.isZh) "可在设置中随时切换中英文" else "Switch app language anytime",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    AppLanguage.entries.forEach { lang ->
+                        val isSelected = currentLanguage.equals(lang.code, ignoreCase = true)
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else MaterialTheme.colorScheme.surface,
+                            border = if (isSelected) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .clickable {
+                                    viewModel.setLanguage(lang.code)
+                                    val msg = if (lang == AppLanguage.ZH) "已切换为简体中文" else "Switched to English"
+                                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                                }
+                                .testTag("lang_${lang.code}")
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = lang.displayName,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                RadioButton(
+                                    selected = isSelected,
+                                    onClick = {
+                                        viewModel.setLanguage(lang.code)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // ==================== SECURITY & PRIVACY ====================
+            Text(
+                text = strings.settingsSectionSecurity,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -222,12 +323,12 @@ fun SettingsScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = "Passcode PIN Lock",
+                                    text = strings.settingsLockTitle,
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = if (viewModel.securityPrefs.isPinSet()) "4-digit PIN is configured" else "No PIN configured",
+                                    text = if (viewModel.securityPrefs.isPinSet()) strings.settingsLockDesc else strings.settingsSetPin,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -243,12 +344,12 @@ fun SettingsScreen(
                                     } else {
                                         viewModel.setLockEnabled(true)
                                         isLockEnabled = true
-                                        Toast.makeText(context, "Passcode lock enabled", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, if (strings.isZh) "已开启密码锁保护" else "Passcode lock enabled", Toast.LENGTH_SHORT).show()
                                     }
                                 } else {
                                     viewModel.setLockEnabled(false)
                                     isLockEnabled = false
-                                    Toast.makeText(context, "Passcode lock disabled", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, if (strings.isZh) "已关闭密码锁保护" else "Passcode lock disabled", Toast.LENGTH_SHORT).show()
                                 }
                             },
                             modifier = Modifier.testTag("switch_pin_lock")
@@ -270,7 +371,7 @@ fun SettingsScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Change PIN Passcode")
+                            Text(strings.settingsChangePin)
                         }
                     }
 
@@ -300,12 +401,12 @@ fun SettingsScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = "Fingerprint / Biometric Unlock",
+                                    text = strings.settingsBiometricTitle,
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = if (isBiometricHardwareAvailable) "Fast unlock with fingerprint" else "Biometric hardware not available",
+                                    text = if (isBiometricHardwareAvailable) strings.settingsBiometricDesc else if (strings.isZh) "硬件不支持生物识别" else "Biometric hardware unavailable",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -314,50 +415,48 @@ fun SettingsScreen(
 
                         Switch(
                             checked = isBiometricEnabled,
-                            enabled = isBiometricHardwareAvailable,
                             onCheckedChange = { checked ->
-                                if (checked && !viewModel.securityPrefs.isPinSet()) {
-                                    Toast.makeText(context, "Please set a PIN first as backup", Toast.LENGTH_SHORT).show()
-                                    showPinSetupDialog = true
-                                } else {
-                                    viewModel.setBiometricEnabled(checked)
-                                    isBiometricEnabled = checked
-                                    val msg = if (checked) "Biometric unlock enabled" else "Biometric unlock disabled"
-                                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                                if (!isBiometricHardwareAvailable && checked) {
+                                    Toast.makeText(context, if (strings.isZh) "生物识别传感器不可用" else "Biometric sensor unavailable", Toast.LENGTH_SHORT).show()
+                                    return@Switch
                                 }
+                                viewModel.setBiometricEnabled(checked)
+                                isBiometricEnabled = checked
                             },
-                            modifier = Modifier.testTag("switch_biometric_lock")
+                            enabled = isBiometricHardwareAvailable,
+                            modifier = Modifier.testTag("switch_biometric")
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // ==================== THEME & MATERIAL PALETTE ====================
+            // ==================== THEME & PALETTES ====================
             Text(
-                text = "Appearance & Theme",
+                text = strings.settingsSectionAppearance,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             Card(
-                shape = RoundedCornerShape(18.dp),
+                shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Light / Dark Mode",
+                        text = strings.settingsThemeMode,
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     val themeOptions = listOf(
-                        "SYSTEM" to "System Default",
-                        "LIGHT" to "Light Mode",
-                        "DARK" to "Dark Mode"
+                        "SYSTEM" to strings.settingsThemeSystem,
+                        "LIGHT" to strings.settingsThemeLight,
+                        "DARK" to strings.settingsThemeDark
                     )
 
                     themeOptions.forEach { (mode, label) ->
@@ -386,13 +485,13 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
-                        text = "Material Color Palette",
+                        text = strings.settingsPaletteTitle,
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Switch between Material 3 expressive palettes and Nothing OS monochrome",
+                        text = if (strings.isZh) "支持 Dynamic Material You 与 Nothing 极简调色板" else "Supports Dynamic Material You & Nothing minimal palettes",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -400,10 +499,16 @@ fun SettingsScreen(
 
                     MaterialColorPalette.entries.forEach { palette ->
                         val isSelected = currentColorPalette == palette
+                        val (title, subtitle) = if (palette == MaterialColorPalette.DYNAMIC) {
+                            strings.settingsPaletteDynamicTitle to strings.settingsPaletteDynamicDesc
+                        } else {
+                            strings.settingsPaletteNothingTitle to strings.settingsPaletteNothingDesc
+                        }
+
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else MaterialTheme.colorScheme.surface,
-                            border = if (isSelected) androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null,
+                            border = if (isSelected) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
@@ -424,14 +529,14 @@ fun SettingsScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = palette.title,
+                                        text = title,
                                         style = MaterialTheme.typography.bodyMedium.copy(
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                                         ),
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        text = palette.subtitle,
+                                        text = subtitle,
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -446,11 +551,11 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // ==================== STATISTICS ====================
             Text(
-                text = "Journal Statistics",
+                text = strings.analyticsTitle,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -462,21 +567,21 @@ fun SettingsScreen(
             ) {
                 // Entries count
                 StatCard(
-                    title = "Entries",
+                    title = strings.analyticsTotalEntries,
                     count = totalEntriesCount.toString(),
                     icon = Icons.Default.Security,
                     modifier = Modifier.weight(1f)
                 )
                 // Photos count
                 StatCard(
-                    title = "Photos",
+                    title = strings.analyticsPhotos,
                     count = totalPhotosCount.toString(),
                     icon = Icons.Default.Image,
                     modifier = Modifier.weight(1f)
                 )
                 // Voice memos count
                 StatCard(
-                    title = "Recordings",
+                    title = strings.analyticsAudioNotes,
                     count = totalAudiosCount.toString(),
                     icon = Icons.Default.Mic,
                     modifier = Modifier.weight(1f)
@@ -490,7 +595,7 @@ fun SettingsScreen(
                     viewModel.setCurrentTab(HomeTab.ANALYTICS)
                     onNavigateBack()
                 },
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("btn_open_detailed_analytics")
@@ -501,14 +606,14 @@ fun SettingsScreen(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("View Analytics, Photo Gallery & Mood Trends")
+                Text(strings.analyticsSubtitle)
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Offline Privacy Reassurance Banner
             Card(
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(18.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
                 ),
@@ -528,26 +633,27 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "100% Offline & Private: All your notes, photos, and voice memos are kept strictly inside your local device storage. No cloud server can read your diary entries.",
+                        text = if (strings.isZh) "100% 离线与隐私保护：所有日记文字、照片及录音均完整保存在本地设备存储中，任何外部服务器均无法读取你的日记内容。" else "100% Offline & Private: All journal texts, photos, and voice notes are stored strictly on your local device. No external servers have access to your data.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // ==================== ABOUT APP ====================
+            // ==================== ABOUT APP / 关于 ====================
             Text(
-                text = "About App",
+                text = strings.settingsSectionAbout,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             Card(
-                shape = RoundedCornerShape(18.dp),
+                shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("card_about_app")
@@ -575,12 +681,12 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(14.dp))
                         Column {
                             Text(
-                                text = "7Diary",
+                                text = strings.appName,
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Version 1.0.0 • Offline 7-Day Journal",
+                                text = strings.versionLabel,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -591,12 +697,13 @@ fun SettingsScreen(
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     Spacer(modifier = Modifier.height(14.dp))
 
+                    // Author information - keeping only author Ziqi
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Palette,
+                            imageVector = Icons.Default.Person,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(22.dp)
@@ -604,37 +711,11 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "Aubergine",
+                                text = strings.authorLabel,
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "Created by Ziqi (AI-assisted creation)",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
                         }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.outline,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Design inspired by Material 3 and Nothing OS monochrome minimalism.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                     }
                 }
             }
@@ -650,7 +731,7 @@ fun SettingsScreen(
                 viewModel.setPin(pin)
                 isLockEnabled = true
                 showPinSetupDialog = false
-                Toast.makeText(context, "PIN Passcode set successfully!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, if (strings.isZh) "PIN 密码设置成功！" else "PIN Passcode set successfully!", Toast.LENGTH_SHORT).show()
             }
         )
     }
@@ -665,8 +746,9 @@ private fun StatCard(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f))
     ) {
         Column(
             modifier = Modifier

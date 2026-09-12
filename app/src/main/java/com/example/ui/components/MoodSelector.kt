@@ -23,6 +23,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.MoodType
+import com.example.util.LocalAppStrings
+import com.example.util.getLocalizedName
 
 @Composable
 fun MoodSelector(
@@ -30,9 +32,11 @@ fun MoodSelector(
     onMoodSelected: (MoodType) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
+
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = "Today's Mood",
+            text = strings.todayMood,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
@@ -75,7 +79,7 @@ fun MoodSelector(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = mood.displayName,
+                            text = mood.getLocalizedName(strings.isZh),
                             style = MaterialTheme.typography.bodyMedium,
                             color = if (isSelected) {
                                 MaterialTheme.colorScheme.onSecondaryContainer

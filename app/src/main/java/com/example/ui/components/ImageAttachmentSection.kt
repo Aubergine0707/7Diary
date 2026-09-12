@@ -43,6 +43,8 @@ import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import java.io.File
 
+import com.example.util.LocalAppStrings
+
 @Composable
 fun ImageAttachmentSection(
     photos: List<String>,
@@ -50,6 +52,7 @@ fun ImageAttachmentSection(
     onRemovePhoto: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     var previewPhotoPath by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = modifier.fillMaxWidth()) {
@@ -59,7 +62,7 @@ fun ImageAttachmentSection(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "Attached Photos (${photos.size})",
+                text = String.format(strings.attachedPhotos, photos.size),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -74,7 +77,7 @@ fun ImageAttachmentSection(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Add Photo")
+                Text(strings.addPhoto)
             }
         }
 
@@ -96,7 +99,7 @@ fun ImageAttachmentSection(
                     ) {
                         AsyncImage(
                             model = File(path),
-                            contentDescription = "Attached photo $index",
+                            contentDescription = "${strings.attachedPhotos.replace("(%d)", "")} ${index + 1}",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxSize()
@@ -118,7 +121,7 @@ fun ImageAttachmentSection(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Remove photo",
+                                contentDescription = strings.removePhoto,
                                 tint = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.size(16.dp)
                             )
@@ -145,12 +148,12 @@ fun ImageAttachmentSection(
                     IconButton(onClick = { previewPhotoPath = null }) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Close preview"
+                            contentDescription = strings.close
                         )
                     }
                     AsyncImage(
                         model = File(fullPath),
-                        contentDescription = "Full Image Preview",
+                        contentDescription = null,
                         contentScale = ContentScale.Fit,
                         modifier = Modifier
                             .fillMaxWidth()

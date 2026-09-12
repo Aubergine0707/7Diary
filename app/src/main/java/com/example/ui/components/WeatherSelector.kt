@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.data.model.WeatherType
+import com.example.util.LocalAppStrings
+import com.example.util.getLocalizedName
 
 @Composable
 fun WeatherSelector(
@@ -30,9 +32,11 @@ fun WeatherSelector(
     onWeatherSelected: (WeatherType) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
+
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = "Today's Weather",
+            text = strings.todayWeather,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
@@ -70,7 +74,7 @@ fun WeatherSelector(
                     ) {
                         Icon(
                             imageVector = weather.icon,
-                            contentDescription = weather.displayName,
+                            contentDescription = weather.getLocalizedName(strings.isZh),
                             tint = if (isSelected) {
                                 MaterialTheme.colorScheme.primary
                             } else {
@@ -80,7 +84,7 @@ fun WeatherSelector(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = weather.displayName,
+                            text = weather.getLocalizedName(strings.isZh),
                             style = MaterialTheme.typography.bodyMedium,
                             color = if (isSelected) {
                                 MaterialTheme.colorScheme.onPrimaryContainer

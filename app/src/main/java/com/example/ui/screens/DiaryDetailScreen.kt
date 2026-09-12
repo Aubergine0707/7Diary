@@ -58,6 +58,8 @@ import com.example.data.model.DiaryEntry
 import com.example.data.model.SevenDayCycleHelper
 import com.example.ui.components.AudioRecordPlayWidget
 import com.example.ui.components.FormattedText
+import com.example.util.LocalAppStrings
+import com.example.util.getLocalizedName
 import com.example.viewmodel.DiaryViewModel
 import java.io.File
 import java.text.SimpleDateFormat
@@ -73,11 +75,16 @@ fun DiaryDetailScreen(
     onNavigateEdit: (DiaryEntry) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     var showDeleteDialog by remember { mutableStateOf(false) }
     var previewPhotoPath by remember { mutableStateOf<String?>(null) }
     val playerState by viewModel.audioPlayer.state.collectAsStateWithLifecycle()
 
-    val dateFormat = remember { SimpleDateFormat("EEEE, MMMM d, yyyy • h:mm a", Locale.US) }
+    val dateFormat = remember(strings.isZh) {
+        val locale = if (strings.isZh) Locale.CHINESE else Locale.ENGLISH
+        val pattern = if (strings.isZh) "yyyy年M月d日 EEEE • HH:mm" else "EEEE, MMMM d, yyyy • HH:mm"
+        SimpleDateFormat(pattern, locale)
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -89,13 +96,13 @@ fun DiaryDetailScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("Journal Entry", style = MaterialTheme.typography.titleMedium) },
+                title = { Text(strings.timelineTitle, style = MaterialTheme.typography.titleMedium) },
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateBack,
                         modifier = Modifier.testTag("detail_back_btn")
                     ) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = strings.cancel)
                     }
                 },
                 actions = {
@@ -103,7 +110,7 @@ fun DiaryDetailScreen(
                     IconButton(onClick = { viewModel.toggleFavorite(entry) }) {
                         Icon(
                             imageVector = if (entry.isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                            contentDescription = "Favorite",
+                            contentDescription = if (entry.isFavorite) strings.unfavorite else strings.favorite,
                             tint = if (entry.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -113,7 +120,7 @@ fun DiaryDetailScreen(
                         onClick = { onNavigateEdit(entry) },
                         modifier = Modifier.testTag("detail_edit_btn")
                     ) {
-                        Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit Entry")
+                        Icon(imageVector = Icons.Default.Edit, contentDescription = strings.edit)
                     }
 
                     // Delete
@@ -123,7 +130,7 @@ fun DiaryDetailScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete Entry",
+                            contentDescription = strings.delete,
                             tint = MaterialTheme.colorScheme.error
                         )
                     }
@@ -153,7 +160,7 @@ fun DiaryDetailScreen(
                     color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Text(
-                        text = "Day $cycleDayNumber of 7",
+                        text = String.format(strings.cycleDayOfSeven, cycleDayNumber),
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
@@ -171,13 +178,13 @@ fun DiaryDetailScreen(
                     ) {
                         Icon(
                             imageVector = entry.weatherType.icon,
-                            contentDescription = entry.weatherType.displayName,
+                            contentDescription = entry.weatherType.getLocalizedName(strings.isZh),
                             tint = entry.weatherType.badgeColor,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = entry.weatherType.displayName,
+                            text = entry.weatherType.getLocalizedName(strings.isZh),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -196,7 +203,7 @@ fun DiaryDetailScreen(
                         Text(text = entry.moodType.emoji, fontSize = 16.sp)
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = entry.moodType.displayName,
+                            text = entry.moodType.getLocalizedName(strings.isZh),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -252,7 +259,7 @@ fun DiaryDetailScreen(
             val photos = entry.photoList
             if (photos.isNotEmpty()) {
                 Text(
-                    text = "Photos (${photos.size})",
+                    text = String.format(strings.attachedPhotos, photos.size),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -300,8 +307,8 @@ fun DiaryDetailScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Entry") },
-            text = { Text("Are you sure you want to delete this diary entry? This action cannot be undone.") },
+            title = { Text(strings.editorDeleteConfirmTitle) },
+            text = { Text(strings.editorDeleteConfirmMessage) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -310,12 +317,12 @@ fun DiaryDetailScreen(
                         onNavigateBack()
                     }
                 ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(strings.delete, color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
+                    Text(strings.cancel)
                 }
             }
         )
@@ -335,7 +342,7 @@ fun DiaryDetailScreen(
                     horizontalAlignment = Alignment.End
                 ) {
                     IconButton(onClick = { previewPhotoPath = null }) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "Close preview")
+                        Icon(imageVector = Icons.Default.Close, contentDescription = strings.cancel)
                     }
                     AsyncImage(
                         model = File(fullPath),

@@ -240,3 +240,43 @@ object SevenDayCycleHelper {
         }.timeInMillis
     }
 }
+
+fun CycleDayItem.getLocalizedDayNameShort(isZh: Boolean): String {
+    val d = Date(dateMillis)
+    val locale = if (isZh) Locale.CHINESE else Locale.ENGLISH
+    return SimpleDateFormat("E", locale).format(d)
+}
+
+fun CycleDayItem.getLocalizedDayNameFull(isZh: Boolean): String {
+    val d = Date(dateMillis)
+    val locale = if (isZh) Locale.CHINESE else Locale.ENGLISH
+    return SimpleDateFormat("EEEE", locale).format(d)
+}
+
+fun CycleDayItem.getLocalizedFormattedDate(isZh: Boolean): String {
+    val d = Date(dateMillis)
+    val locale = if (isZh) Locale.CHINESE else Locale.ENGLISH
+    return if (isZh) {
+        SimpleDateFormat("M月d日", locale).format(d)
+    } else {
+        SimpleDateFormat("MMM d", locale).format(d)
+    }
+}
+
+fun SevenDayCycle.getLocalizedDateRangeLabel(isZh: Boolean): String {
+    val locale = if (isZh) Locale.CHINESE else Locale.ENGLISH
+    val format = if (isZh) SimpleDateFormat("M月d日", locale) else SimpleDateFormat("MMM d", locale)
+    val start = format.format(Date(startMillis))
+    val end = format.format(Date(endMillis))
+    return if (isZh) "$start - $end" else "$start – $end"
+}
+
+fun SevenDayCycle.getLocalizedDisplayTitle(isZh: Boolean): String {
+    val range = getLocalizedDateRangeLabel(isZh)
+    return if (isZh) {
+        "第 $weekNumber 周期 • $range, $year"
+    } else {
+        "Cycle #$weekNumber • $range, $year"
+    }
+}
+

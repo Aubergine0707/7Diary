@@ -6,7 +6,6 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -32,7 +31,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Image
@@ -42,13 +40,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -63,17 +58,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.R
 import com.example.data.model.CycleDayItem
 import com.example.data.model.DiaryEntry
 import com.example.data.model.SevenDayCycle
+import com.example.data.model.getLocalizedDateRangeLabel
+import com.example.data.model.getLocalizedDayNameFull
+import com.example.data.model.getLocalizedDayNameShort
+import com.example.data.model.getLocalizedDisplayTitle
+import com.example.data.model.getLocalizedFormattedDate
+import com.example.util.LocalAppStrings
+import com.example.util.getLocalizedName
 import java.io.File
 
 @Composable
@@ -87,6 +87,7 @@ fun SevenDayCycleView(
     onSaveReflection: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     var isReflectionDialogOpen by remember { mutableStateOf(false) }
 
     LazyColumn(
@@ -144,12 +145,12 @@ fun SevenDayCycleView(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "7-Day Journey Stations",
+                    text = strings.cycleStationsTitle,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "${cycle.recordedDaysCount}/7 Completed",
+                    text = if (strings.isZh) "已完成 ${cycle.recordedDaysCount}/7 天" else "${cycle.recordedDaysCount}/7 Completed",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -177,7 +178,7 @@ fun SevenDayCycleView(
     if (isReflectionDialogOpen) {
         EditCycleReflectionDialog(
             currentReflection = cycle.reflectionText,
-            cycleTitle = cycle.displayTitle,
+            cycleTitle = cycle.getLocalizedDisplayTitle(strings.isZh),
             onDismiss = { isReflectionDialogOpen = false },
             onSave = { text ->
                 onSaveReflection(text)
@@ -197,6 +198,8 @@ private fun CycleNavigatorBar(
     onNextCycle: () -> Unit,
     onResetToCurrentCycle: () -> Unit
 ) {
+    val strings = LocalAppStrings.current
+
     Surface(
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -215,7 +218,7 @@ private fun CycleNavigatorBar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Previous Cycle",
+                    contentDescription = strings.calendarPrevMonth,
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -228,7 +231,7 @@ private fun CycleNavigatorBar(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Cycle #${cycle.weekNumber}",
+                        text = if (strings.isZh) "第 ${cycle.weekNumber} 周期" else "Cycle #${cycle.weekNumber}",
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -239,7 +242,7 @@ private fun CycleNavigatorBar(
                             color = MaterialTheme.colorScheme.primaryContainer
                         ) {
                             Text(
-                                text = "Current",
+                                text = strings.cycleCurrentTag,
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -248,7 +251,7 @@ private fun CycleNavigatorBar(
                     }
                 }
                 Text(
-                    text = cycle.dateRangeLabel,
+                    text = cycle.getLocalizedDateRangeLabel(strings.isZh),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -260,7 +263,7 @@ private fun CycleNavigatorBar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = "Next Cycle",
+                    contentDescription = strings.calendarNextMonth,
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -276,6 +279,7 @@ private fun CycleHeroCard(
     cycle: SevenDayCycle,
     onWriteToday: () -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val animatedProgress by animateFloatAsState(
         targetValue = cycle.completionPercentage,
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
@@ -321,7 +325,7 @@ private fun CycleHeroCard(
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            text = "DAYS",
+                            text = strings.cycleDaysCaps,
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.sp
@@ -337,10 +341,10 @@ private fun CycleHeroCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = when {
-                            cycle.isComplete -> "7 of 7 Days Completed"
-                            cycle.recordedDaysCount >= 4 -> "${cycle.recordedDaysCount} of 7 Days Logged • Great Pace"
-                            cycle.recordedDaysCount > 0 -> "${cycle.recordedDaysCount} of 7 Days Logged"
-                            else -> "A Fresh 7-Day Cycle Begins"
+                            cycle.isComplete -> strings.cycleCompletedAllTitle
+                            cycle.recordedDaysCount >= 4 -> String.format(strings.cycleCompletedPaceTitle, cycle.recordedDaysCount)
+                            cycle.recordedDaysCount > 0 -> String.format(strings.cycleCompletedCountTitle, cycle.recordedDaysCount)
+                            else -> strings.cycleFreshTitle
                         },
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
@@ -350,10 +354,10 @@ private fun CycleHeroCard(
 
                     Text(
                         text = when {
-                            cycle.isComplete -> "All 7 chapters captured this week! You've woven a complete weekly story."
-                            cycle.recordedDaysCount >= 4 -> "Over halfway through this 7-day unit. Every moment matters!"
-                            cycle.recordedDaysCount > 0 -> "Write daily to complete your 7-day memory collection."
-                            else -> "Track your mood, weather, and stories in this 7-day recording unit."
+                            cycle.isComplete -> strings.cycleCompletedAllDesc
+                            cycle.recordedDaysCount >= 4 -> strings.cycleCompletedPaceDesc
+                            cycle.recordedDaysCount > 0 -> strings.cycleCompletedCountDesc
+                            else -> strings.cycleFreshDesc
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -371,7 +375,7 @@ private fun CycleHeroCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "7-Day Goal Progress",
+                        text = strings.cycleGoalProgress,
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -419,7 +423,7 @@ private fun CycleHeroCard(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "${cycle.entries.size} Entries",
+                            text = String.format(strings.cycleEntriesCount, cycle.entries.size),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -443,7 +447,7 @@ private fun CycleHeroCard(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "${cycle.photosCount} Photos",
+                                text = String.format(strings.cyclePhotosCount, cycle.photosCount),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -468,7 +472,7 @@ private fun CycleHeroCard(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "${cycle.audioNotesCount} Voice",
+                                text = String.format(strings.cycleVoiceCount, cycle.audioNotesCount),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -482,7 +486,7 @@ private fun CycleHeroCard(
                         color = MaterialTheme.colorScheme.surfaceContainerHigh
                     ) {
                         Text(
-                            text = "${mood.emoji} ${mood.displayName}",
+                            text = "${mood.emoji} ${mood.getLocalizedName(strings.isZh)}",
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
@@ -502,10 +506,12 @@ private fun CycleWeeklyPillStrip(
     days: List<CycleDayItem>,
     onDayClick: (CycleDayItem) -> Unit
 ) {
+    val strings = LocalAppStrings.current
+
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -520,8 +526,8 @@ private fun CycleWeeklyPillStrip(
                 val hasEntry = day.hasEntry
                 val containerColor = when {
                     isToday -> MaterialTheme.colorScheme.primaryContainer
-                    hasEntry -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
-                    else -> MaterialTheme.colorScheme.surfaceContainerLowest
+                    hasEntry -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                    else -> androidx.compose.ui.graphics.Color.Transparent
                 }
 
                 Column(
@@ -545,7 +551,7 @@ private fun CycleWeeklyPillStrip(
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Text(
-                        text = day.dayNameShort,
+                        text = day.getLocalizedDayNameShort(strings.isZh),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -602,20 +608,21 @@ private fun CycleDayStationCard(
     onEntryClick: (DiaryEntry) -> Unit,
     onNewEntryForDate: (Long) -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val hasEntry = day.hasEntry
     val isToday = day.isToday
 
-    ElevatedCard(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = when {
-                isToday && !hasEntry -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                hasEntry -> MaterialTheme.colorScheme.surface
-                else -> MaterialTheme.colorScheme.surfaceContainerLowest
-            }
+    Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
-        elevation = CardDefaults.elevatedCardElevation(
-            defaultElevation = if (hasEntry || isToday) 2.dp else 0.dp
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isToday) 2.dp else 0.dp
+        ),
+        border = BorderStroke(
+            width = if (isToday) 2.dp else 1.dp,
+            color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -635,12 +642,12 @@ private fun CycleDayStationCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
                         shape = RoundedCornerShape(10.dp),
-                        color = if (hasEntry) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
+                        color = if (isToday) MaterialTheme.colorScheme.primaryContainer else if (hasEntry) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
                     ) {
                         Text(
-                            text = "Day ${day.dayNumber} of 7",
+                            text = String.format(strings.cycleDayOfSeven, day.dayNumber),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = if (hasEntry) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = if (isToday) MaterialTheme.colorScheme.onPrimaryContainer else if (hasEntry) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
@@ -648,7 +655,7 @@ private fun CycleDayStationCard(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
-                        text = "${day.dayNameFull}, ${day.formattedDate}",
+                        text = "${day.getLocalizedDayNameFull(strings.isZh)}, ${day.getLocalizedFormattedDate(strings.isZh)}",
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -671,7 +678,7 @@ private fun CycleDayStationCard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Today",
+                                text = strings.today,
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
@@ -689,7 +696,8 @@ private fun CycleDayStationCard(
 
                     Surface(
                         shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onEntryClick(entry) }
@@ -711,7 +719,7 @@ private fun CycleDayStationCard(
                                     // Weather Pill
                                     Surface(
                                         shape = RoundedCornerShape(8.dp),
-                                        color = MaterialTheme.colorScheme.surface
+                                        color = MaterialTheme.colorScheme.surfaceContainerHigh
                                     ) {
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
@@ -725,7 +733,7 @@ private fun CycleDayStationCard(
                                             )
                                             Spacer(modifier = Modifier.width(4.dp))
                                             Text(
-                                                text = entry.weatherType.displayName,
+                                                text = entry.weatherType.getLocalizedName(strings.isZh),
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontSize = 11.sp
                                             )
@@ -735,7 +743,7 @@ private fun CycleDayStationCard(
                                     // Mood Pill
                                     Surface(
                                         shape = RoundedCornerShape(8.dp),
-                                        color = MaterialTheme.colorScheme.surface
+                                        color = MaterialTheme.colorScheme.surfaceContainerHigh
                                     ) {
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
@@ -744,7 +752,7 @@ private fun CycleDayStationCard(
                                             Text(text = entry.moodType.emoji, fontSize = 12.sp)
                                             Spacer(modifier = Modifier.width(4.dp))
                                             Text(
-                                                text = entry.moodType.displayName,
+                                                text = entry.moodType.getLocalizedName(strings.isZh),
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontSize = 11.sp
                                             )
@@ -802,14 +810,16 @@ private fun CycleDayStationCard(
                 }
             } else {
                 // Unrecorded day slot: Inviting call-to-action
-                OutlinedCard(
+                Surface(
                     shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainer,
                     border = BorderStroke(
                         1.dp,
-                        if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        if (isToday) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
                         .clickable { onNewEntryForDate(day.dateMillis) }
                 ) {
                     Row(
@@ -841,12 +851,12 @@ private fun CycleDayStationCard(
 
                             Column {
                                 Text(
-                                    text = if (isToday) "Record Day ${day.dayNumber} Story" else "Log Day ${day.dayNumber} Entry",
+                                    text = if (isToday) String.format(strings.cycleRecordDayStory, day.dayNumber) else String.format(strings.cycleLogDayEntry, day.dayNumber),
                                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                                     color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = if (isToday) "How's your day going? Weather & thoughts" else "Fill in this day of your 7-day unit",
+                                    text = if (isToday) strings.cycleDayPromptToday else strings.cycleDayPromptOther,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -855,7 +865,7 @@ private fun CycleDayStationCard(
 
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Write",
+                            contentDescription = strings.edit,
                             tint = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp)
                         )
@@ -874,6 +884,8 @@ private fun CycleReflectionCapsuleCard(
     cycle: SevenDayCycle,
     onEditReflection: () -> Unit
 ) {
+    val strings = LocalAppStrings.current
+
     Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
@@ -914,12 +926,12 @@ private fun CycleReflectionCapsuleCard(
 
                     Column {
                         Text(
-                            text = "7-Day Story Capsule",
+                            text = strings.cycleCapsuleTitle,
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Weekly Retrospective & Reflection",
+                            text = strings.cycleCapsuleSubtitle,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -929,7 +941,7 @@ private fun CycleReflectionCapsuleCard(
                 IconButton(onClick = onEditReflection) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit Weekly Reflection",
+                        contentDescription = strings.cycleReflectionTitle,
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -939,7 +951,7 @@ private fun CycleReflectionCapsuleCard(
 
             // Mood Journey Spectrum across the 7 days
             Text(
-                text = "Emotional Journey of the 7 Days",
+                text = strings.cycleEmotionalJourney,
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -992,7 +1004,7 @@ private fun CycleReflectionCapsuleCard(
                         )
                     } else {
                         Text(
-                            text = "No weekly reflection written yet for this 7-day cycle.\nTap here to capture your takeaways, grateful moments, or highlights!",
+                            text = strings.cycleNoReflection,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             textAlign = TextAlign.Start
@@ -1006,7 +1018,7 @@ private fun CycleReflectionCapsuleCard(
             if (cyclePhotos.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(14.dp))
                 Text(
-                    text = "7-Day Photo Reel (${cyclePhotos.size})",
+                    text = String.format(strings.cyclePhotoReel, cyclePhotos.size),
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -1043,6 +1055,7 @@ private fun EditCycleReflectionDialog(
     onDismiss: () -> Unit,
     onSave: (String) -> Unit
 ) {
+    val strings = LocalAppStrings.current
     var text by remember { mutableStateOf(currentReflection) }
 
     AlertDialog(
@@ -1050,7 +1063,7 @@ private fun EditCycleReflectionDialog(
         title = {
             Column {
                 Text(
-                    text = "7-Day Cycle Reflection",
+                    text = strings.cycleReflectionDialogTitle,
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                 )
                 Spacer(modifier = Modifier.height(2.dp))
@@ -1064,7 +1077,7 @@ private fun EditCycleReflectionDialog(
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Reflect on this 7-day period: What did you accomplish? What brought you joy? What would you like to improve in the next 7-day cycle?",
+                    text = strings.cycleReflectionPrompt,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -1072,7 +1085,7 @@ private fun EditCycleReflectionDialog(
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it },
-                    placeholder = { Text("Write your 7-day cycle thoughts...") },
+                    placeholder = { Text(strings.cycleReflectionPlaceholder) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp),
@@ -1086,12 +1099,12 @@ private fun EditCycleReflectionDialog(
                 onClick = { onSave(text) },
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Save Reflection")
+                Text(strings.saveReflection)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(strings.cancel)
             }
         }
     )

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
@@ -38,6 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.model.DiaryEntry
+import com.example.data.model.SevenDayCycleHelper
+import com.example.util.LocalAppStrings
+import com.example.util.getLocalizedName
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -50,12 +52,17 @@ fun DiaryCard(
     onToggleFavorite: (DiaryEntry) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val dateFormat = remember { SimpleDateFormat("MMM d, yyyy • EEEE", Locale.US) }
-    val timeFormat = remember { SimpleDateFormat("h:mm a", Locale.US) }
+    val strings = LocalAppStrings.current
 
-    val dateStr = remember(entry.dateTimestamp) {
+    val dateStr = remember(entry.dateTimestamp, strings.isZh) {
         val d = Date(entry.dateTimestamp)
-        "${dateFormat.format(d)} at ${timeFormat.format(d)}"
+        if (strings.isZh) {
+            val format = SimpleDateFormat("yyyy年M月d日 EEEE HH:mm", Locale.CHINESE)
+            format.format(d)
+        } else {
+            val format = SimpleDateFormat("MMM d, yyyy • EEEE, h:mm a", Locale.ENGLISH)
+            format.format(d)
+        }
     }
 
     val cleanSnippet = remember(entry.content) {
@@ -92,13 +99,13 @@ fun DiaryCard(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     // 7-Day Cycle Day Tag
-                    val cycleDayNum = com.example.data.model.SevenDayCycleHelper.getDayNumberInCycle(entry.dateTimestamp)
+                    val cycleDayNum = SevenDayCycleHelper.getDayNumberInCycle(entry.dateTimestamp)
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = MaterialTheme.colorScheme.primaryContainer
                     ) {
                         Text(
-                            text = "Day $cycleDayNum/7",
+                            text = if (strings.isZh) "第 $cycleDayNum/7 天" else "Day $cycleDayNum/7",
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -116,13 +123,13 @@ fun DiaryCard(
                         ) {
                             Icon(
                                 imageVector = entry.weatherType.icon,
-                                contentDescription = entry.weatherType.displayName,
+                                contentDescription = entry.weatherType.getLocalizedName(strings.isZh),
                                 tint = entry.weatherType.badgeColor,
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = entry.weatherType.displayName,
+                                text = entry.weatherType.getLocalizedName(strings.isZh),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -144,7 +151,7 @@ fun DiaryCard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = entry.moodType.displayName,
+                                text = entry.moodType.getLocalizedName(strings.isZh),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -159,7 +166,7 @@ fun DiaryCard(
                 ) {
                     Icon(
                         imageVector = if (entry.isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                        contentDescription = "Favorite",
+                        contentDescription = if (entry.isFavorite) strings.unfavorite else strings.favorite,
                         tint = if (entry.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -249,13 +256,13 @@ fun DiaryCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.GraphicEq,
-                            contentDescription = "Voice Memo",
+                            contentDescription = strings.voiceRecording,
                             tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Voice Memo (${entry.audioDurationSeconds}s)",
+                            text = if (strings.isZh) "语音备忘 (${entry.audioDurationSeconds}秒)" else "Voice Memo (${entry.audioDurationSeconds}s)",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSecondaryContainer
                         )

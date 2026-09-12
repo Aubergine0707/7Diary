@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.util.LocalAppStrings
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -55,6 +56,7 @@ fun LockScreenView(
     onBiometricRequest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
     var enteredPin by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val shakeOffset = remember { Animatable(0f) }
@@ -74,7 +76,7 @@ fun LockScreenView(
         if (enteredPin.length == 4) {
             val isCorrect = onVerifyPin(enteredPin)
             if (!isCorrect) {
-                errorMessage = "Incorrect PIN. Try again."
+                errorMessage = strings.lockIncorrectPin
                 triggerShake()
                 enteredPin = ""
             } else {
@@ -117,7 +119,7 @@ fun LockScreenView(
                 Spacer(modifier = Modifier.height(18.dp))
 
                 Text(
-                    text = "Offline Diary Locked",
+                    text = strings.lockScreenTitle,
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -125,7 +127,7 @@ fun LockScreenView(
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = "Enter your 4-digit PIN to access your journal",
+                    text = strings.lockScreenSubtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -258,7 +260,7 @@ fun LockScreenView(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Unlock with Fingerprint")
+                        Text(strings.lockUnlockBiometric)
                     }
                 }
             }
